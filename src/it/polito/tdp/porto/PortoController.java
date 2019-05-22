@@ -1,12 +1,15 @@
 package it.polito.tdp.porto;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import org.jgrapht.Graphs;
 
 import it.polito.tdp.porto.model.Author;
 import it.polito.tdp.porto.model.Model;
+import it.polito.tdp.porto.model.Paper;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -47,6 +50,7 @@ public class PortoController {
 		}
   
     	txtResult.setText(res.trim());
+    
     }
     
 
@@ -62,7 +66,14 @@ public class PortoController {
 		Author author1 = boxPrimo.getValue();
 		Author author2 = boxSecondo.getValue();
 		
+		List<Paper> paperList = new ArrayList<Paper>(model.getPath(author1, author2));
 		
+		String result = "Per arrivare da " + author1.getLastname() +" "+author2.getFirstname()+" a " + author2.getLastname() +" "+author1.getFirstname() + " si passa per questi articoli: \n";
+		for(Paper p : paperList) {
+			result += "- "+ p.getTitle()+ "\n";
+		}
+		
+		txtResult.setText(result.trim());
     }
 
     @FXML

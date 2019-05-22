@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
 import org.jgrapht.Graphs;
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
@@ -19,7 +21,7 @@ public class Model {
 
 	private Map<Integer, Author> idMap;
 	private Map<Integer, Paper> paperMap;
-	private List<CoAuthor> coAutorList;
+	private List<CoAuthor> coAuthorList;
 	
 	private PortoDAO dao;
 	
@@ -51,7 +53,7 @@ public class Model {
 			paperMap.put(p.getEprintid(), p);
 		}
 		
-		coAutorList = new ArrayList<CoAuthor>(dao.getcoAutori(idMap));
+		coAuthorList = new ArrayList<CoAuthor>(dao.getcoAutori(idMap, paperMap));
 		
 		this.createGraph();
 		List<Author> result = new ArrayList<Author>();
@@ -73,12 +75,46 @@ public class Model {
 		
 		//Aggiungo archi
 		
-		for(CoAuthor ca : coAutorList) {
+		for(CoAuthor ca : coAuthorList) {
 			if(grafo.getEdge(ca.getAuthor2(), ca.getAuthor1()) == null) {
 				grafo.addEdge(ca.getAuthor1(), ca.getAuthor2());
 			}
 		}
 		
+	}
+	
+	private List<Author> trovaCamminoMinimo(Author autore1, Author autore2){
+		DijkstraShortestPath<Author, DefaultEdge> dijstra = new DijkstraShortestPath<Author, DefaultEdge>(this.grafo);
+		GraphPath<Author, DefaultEdge> path = dijstra.getPath(autore1, autore2);
+		if(path != null)
+			return path.getVertexList();
+		
+		return new ArrayList<Author>();
+	}
+
+	public List<Paper> getPath(Author author1, Author author2) {
+		List<Author> pathAuthor = new ArrayList<Author>(this.trovaCamminoMinimo(author1, author2));
+		List<Paper> pathPaper = new ArrayList<Paper>(); 
+		
+		/*for(int i = 0; i < pathAuthor.size(); i++) {
+			int j = 0;
+			Paper paperTemp = null;
+			while(j < coAuthorList.size() && paperTemp == null) {
+				paperTemp = coAuthorList.get(j).getPaper(author1, author2);
+				}
+			pathPaper.add(paperTemp);
+			}*/
+		
+		for(int i = 0; i < pathAuthor.size()-1; i++) {
+			CoAuthor found = null;
+			for(CoAuthor c : coAuthorList)
+				if(c.equals(new CoAuthor(pathAuthor.get(i), pathAuthor.get(i+1), null)))
+					found = c;
+			if(found != null)
+				pathPaper.add(found.getPaper());
+		}
+		
+		return pathPaper;
 	}
 
 }

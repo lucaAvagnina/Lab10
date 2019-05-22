@@ -117,7 +117,7 @@ public class PortoDAO {
 
 			ResultSet rs = st.executeQuery();
 
-			if (rs.next()) {
+			while (rs.next()) {
 				Paper paper = new Paper(rs.getInt("eprintid"), rs.getString("title"), rs.getString("issn"),
 						rs.getString("publication"), rs.getString("type"), rs.getString("types"));
 				result.add(paper);
@@ -131,8 +131,8 @@ public class PortoDAO {
 		}
 	}
 
-	public List<CoAuthor> getcoAutori(Map<Integer, Author> idMap) {
-		final String sql = "SELECT c1.authorid AS a1, c2.authorid AS a2 "
+	public List<CoAuthor> getcoAutori(Map<Integer, Author> idMap, Map<Integer, Paper> paperMap) {
+		final String sql = "SELECT c1.authorid AS a1, c2.authorid AS a2, c1.eprintid AS p "
 				+ "FROM creator AS c1, creator AS c2 "
 				+ "WHERE c1.eprintid = c2.eprintid AND c1.authorid != c2.authorid"; 
 				
@@ -146,8 +146,9 @@ public class PortoDAO {
 
 			while (rs.next()) {
 				Author a1 = idMap.get(rs.getInt("a1"));
-				Author a2 = idMap.get(rs.getObject("a2"));
-				CoAuthor cTemp = new CoAuthor(a1, a2);
+				Author a2 = idMap.get(rs.getInt("a2"));
+				Paper p = paperMap.get(rs.getInt("p"));
+				CoAuthor cTemp = new CoAuthor(a1, a2, p);
 				result.add(cTemp);
 			}
 			conn.close();
